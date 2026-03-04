@@ -5,4 +5,5 @@ export interface Gig {
   status: 'active' | 'completed' | 'pending';
   budget: number;
   deadline: string;
+  amount?: number;  // actual earnings/paid amount (used in PDFExport + future revenue charts)
 }
