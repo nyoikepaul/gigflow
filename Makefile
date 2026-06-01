@@ -62,3 +62,11 @@ archive-logs:
 
 db-migrate:
 	@bash scripts/infra/26-db-migrate.sh
+
+.PHONY: archive-logs db-seed
+
+archive-logs:
+	@bash scripts/infra/25-log-archiver.sh
+
+db-seed:
+	@bash scripts/infra/27-db-seed.sh
