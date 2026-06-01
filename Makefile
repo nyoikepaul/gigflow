@@ -52,3 +52,8 @@ audit:
 
 logs-analyze:
 	@bash scripts/infra/24-log-analyzer.sh
+
+.PHONY: archive-logs
+
+archive-logs:
+	@bash scripts/infra/25-log-archiver.sh
