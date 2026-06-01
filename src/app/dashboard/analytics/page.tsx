@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useContractStore } from '@/store/useContractStore';
+import { useContractStore } from '../../../store/useContractStore';
 
 export default function FinancialAnalyticsCard() {
   const activeMetrics = useContractStore((state) => state.getActiveFinancialMetrics());
