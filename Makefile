@@ -57,3 +57,8 @@ logs-analyze:
 
 archive-logs:
 	@bash scripts/infra/25-log-archiver.sh
+
+.PHONY: db-migrate
+
+db-migrate:
+	@bash scripts/infra/26-db-migrate.sh
