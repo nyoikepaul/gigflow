@@ -8,3 +8,14 @@ test:
 
 build:
 	@bash scripts/infra/03-docker-build.sh
+
+.PHONY: harden firewall watchdog
+
+harden:
+	@bash scripts/infra/16-harden-os.sh
+
+firewall:
+	@bash scripts/infra/08-ufw-setup.sh
+
+watchdog:
+	@bash scripts/infra/21-system-watchdog.sh
