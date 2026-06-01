@@ -41,11 +41,10 @@ This repository layout functions as an automated operations pipeline and enginee
 * **Target PostgreSQL DB** `[Schema Migration Guard]` — Decoupled transactional database state protected by automated pre-flight socket connectivity and migration validation checks.
 
 ---
-<pre>
+
 UNIFIED INFRASTRUCTURE CONTROL PLANE  
 =====================================================
   
-</pre>
 
 The repository integrates a frictionless automation plane via the centralized `Makefile`. All lifecycle parameters and testing vectors are driven through single-word primitives:
 
@@ -58,13 +57,10 @@ The repository integrates a frictionless automation plane via the centralized `M
 * `make test-all` — Triggers the sequential Master Pipeline Integration Suite.
 
 ---
-<pre>
+
 ORCHESTRATION & MASTER VALIDATION
 =====================================================
-  
-</pre>
-  
-  
+    
 
 To execute the full localized verification pipeline, run the global integration runner:
 
