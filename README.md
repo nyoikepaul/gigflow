@@ -1,14 +1,17 @@
 <pre>
 GigFlow Core — Premium Freelance Management Dashboard
 =====================================================
-</pre>
+<pre>
 
 This repository layout functions as an automated operations pipeline and engineering workspace designed for enterprise freelance workflow telemetry, high-performance runtime isolation, and distributed data compliance layers.
 
 ---
+<pre>
+ SYSTEM ARCHITECTURE TOPOGRAPHY
+=====================================================
+<pre>
 
-### 🏗️ SYSTEM ARCHITECTURE TOPOGRAPHY
-
+  
                    [ Public Internet Port: 80 ]
                                 │
                                 ▼
@@ -38,8 +41,11 @@ This repository layout functions as an automated operations pipeline and enginee
 * **Target PostgreSQL DB** `[Schema Migration Guard]` — Decoupled transactional database state protected by automated pre-flight socket connectivity and migration validation checks.
 
 ---
-
-### ⚡ UNIFIED INFRASTRUCTURE CONTROL PLANE
+<pre>
+UNIFIED INFRASTRUCTURE CONTROL PLANE  
+=====================================================
+  
+</pre>
 
 The repository integrates a frictionless automation plane via the centralized `Makefile`. All lifecycle parameters and testing vectors are driven through single-word primitives:
 
@@ -52,12 +58,17 @@ The repository integrates a frictionless automation plane via the centralized `M
 * `make test-all` — Triggers the sequential Master Pipeline Integration Suite.
 
 ---
-
-### 🧪 ORCHESTRATION & MASTER VALIDATION
+<pre>
+ORCHESTRATION & MASTER VALIDATION
+=====================================================
+  
+</pre>
+  
+  
 
 To execute the full localized verification pipeline, run the global integration runner:
 
-```bash
+bash
 make test-all
 
 This gate sequentially audits static application security layers, evaluates telemetry streams for critical failures (such as M-Pesa STK push timeout errors), and verifies containerized environment health parameters seamlessly.
