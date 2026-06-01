@@ -70,3 +70,11 @@ archive-logs:
 
 db-seed:
 	@bash scripts/infra/27-db-seed.sh
+
+.PHONY: logs-analyze test-all
+
+logs-analyze:
+	@bash scripts/infra/24-log-analyzer.sh
+
+test-all:
+	@bash scripts/infra/29-validate-pipeline.sh
