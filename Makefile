@@ -31,3 +31,14 @@ rotate-logs:
 
 backup:
 	@bash scripts/infra/18-backup-engine.sh
+
+.PHONY: up down logs
+
+up:
+	@docker compose up -d --build
+
+down:
+	@docker compose down
+
+logs:
+	@docker compose logs -f --tail=100
