@@ -8,26 +8,3 @@ test:
 
 build:
 	@bash scripts/infra/03-docker-build.sh
-
-.PHONY: harden firewall watchdog
-
-harden:
-	@bash scripts/infra/16-harden-os.sh
-
-firewall:
-	@bash scripts/infra/08-ufw-setup.sh
-
-watchdog:
-	@bash scripts/infra/21-system-watchdog.sh
-
-.PHONY: clean rotate-logs backup
-
-clean:
-	@bash scripts/infra/04-docker-clean.sh
-	@bash scripts/infra/05-clean-cache.sh
-
-rotate-logs:
-	@bash scripts/infra/17-logrotate-setup.sh
-
-backup:
-	@bash scripts/infra/18-backup-engine.sh
