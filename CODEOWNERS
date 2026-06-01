@@ -1,0 +1,9 @@
+# Global fallback owner for the entire repository
+* @NyoikePaul
+
+# Infrastructure, telemetry, and automation script guards
+/scripts/infra/   @NyoikePaul
+/Makefile         @NyoikePaul
+
+# GitHub Actions pipelines security guards
+/.github/workflows/ @NyoikePaul
