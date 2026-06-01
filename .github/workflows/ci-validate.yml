@@ -1,0 +1,26 @@
+name: Infrastructure CI Core
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Initialize Environment Matrix Validation
+        run: |
+          echo "Checking infrastructure script syntax..."
+          # Verify all shell scripts have correct execution formatting
+          find . -name "*.sh" -exec bash -n {} +
+          echo "Syntax verification complete. All shell engines nominal."
+
+      - name: Execute Makefile Validation Mock
+        run: |
+          echo "Verifying control plane target mapping..."
+          grep -E '^[a-zA-Z_-]+:' Makefile || echo "Makefile empty or custom layout"
