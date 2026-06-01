@@ -1,0 +1,15 @@
+{
+  "project_scope": "gigflow-core",
+  "build_epoch": "2026-Q2",
+  "architecture_version": "1.0.0-stable",
+  "engine_runtime_spec": {
+    "node_target": ">=18.0.0",
+    "database_dialect": "postgresql",
+    "reverse_proxy_edge": "nginx-alpine"
+  },
+  "compliance_matrix": {
+    "sast_audited": true,
+    "security_headers_enforced": true,
+    "isolated_network_mesh": true
+  }
+}
