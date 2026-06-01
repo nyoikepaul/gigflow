@@ -47,3 +47,8 @@ logs:
 
 audit:
 	@bash scripts/infra/23-audit-security.sh
+
+.PHONY: logs-analyze
+
+logs-analyze:
+	@bash scripts/infra/24-log-analyzer.sh
