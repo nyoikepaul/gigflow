@@ -19,3 +19,15 @@ firewall:
 
 watchdog:
 	@bash scripts/infra/21-system-watchdog.sh
+
+.PHONY: clean rotate-logs backup
+
+clean:
+	@bash scripts/infra/04-docker-clean.sh
+	@bash scripts/infra/05-clean-cache.sh
+
+rotate-logs:
+	@bash scripts/infra/17-logrotate-setup.sh
+
+backup:
+	@bash scripts/infra/18-backup-engine.sh
