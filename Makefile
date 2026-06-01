@@ -42,3 +42,8 @@ down:
 
 logs:
 	@docker compose logs -f --tail=100
+
+.PHONY: audit
+
+audit:
+	@bash scripts/infra/23-audit-security.sh
