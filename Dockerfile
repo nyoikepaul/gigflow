@@ -31,7 +31,8 @@ ENV NODE_ENV=production
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Selectively pull ONLY the compiled artifacts from Stage 1
+# Selectively pull ONLY the compiled Next.js artifacts and static files
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
@@ -43,4 +44,5 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 
-CMD ["node", "dist/main.js"]
+# The correct runtime entrypoint for a Next.js application
+CMD ["npx", "next", "start"]
