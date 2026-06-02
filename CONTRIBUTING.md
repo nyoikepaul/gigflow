@@ -1,11 +1,13 @@
 <pre>
   Contributing to GigFlow
-=====================================================
+  
+=========================
 
 Thank you for contributing to GigFlow.
 
 Development Setup
-=====================================================
+  
+=================
 
 
 bash
