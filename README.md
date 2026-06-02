@@ -1,4 +1,4 @@
-
+<pre>
 GigFlow Core — Premium Freelance Management Dashboard
 =====================================================
 
