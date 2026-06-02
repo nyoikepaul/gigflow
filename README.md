@@ -1,7 +1,7 @@
-<pre>
+
 GigFlow Core — Premium Freelance Management Dashboard
 =====================================================
-<pre>
+
 
 This repository layout functions as an automated operations pipeline and engineering workspace designed for enterprise freelance workflow telemetry, high-performance runtime isolation, and distributed data compliance layers.
 
