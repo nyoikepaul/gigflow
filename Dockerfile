@@ -10,7 +10,7 @@ RUN apk add --no-cache python3 make g++
 
 # Cache dependency trees
 COPY package*.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Pull in source code and compile production assets
 COPY . .
