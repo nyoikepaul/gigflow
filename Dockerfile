@@ -34,7 +34,7 @@ RUN addgroup -g 1001 -S nodejs && \
 # Selectively pull ONLY the compiled artifacts from Stage 1
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/.next ./.next
 
 # Enforce secure file ownership permissions
 RUN chown -R nextjs:nodejs /app
