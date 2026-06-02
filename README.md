@@ -5,10 +5,10 @@ GigFlow Core — Premium Freelance Management Dashboard
 
 This repository layout functions as an automated operations pipeline and engineering workspace designed for enterprise freelance workflow telemetry, high-performance runtime isolation, and distributed data compliance layers.
 
-<pre>
+
  SYSTEM ARCHITECTURE TOPOGRAPHY
 =====================================================
-<pre>
+<pre
 
   
                    [ Public Internet Port: 80 ]
@@ -43,7 +43,7 @@ This repository layout functions as an automated operations pipeline and enginee
 
 UNIFIED INFRASTRUCTURE CONTROL PLANE  
 =====================================================
-  <pre>
+  <pre
 
 The repository integrates a frictionless automation plane via the centralized `Makefile`. All lifecycle parameters and testing vectors are driven through single-word primitives:
 
@@ -59,7 +59,7 @@ The repository integrates a frictionless automation plane via the centralized `M
 
 ORCHESTRATION & MASTER VALIDATION
 =====================================================
- <pre>
+ <pre
   
 Build Status
 The project is verified and builds successfully.
