@@ -1,0 +1,5 @@
+[
+  { "id": "1", "name": "E-commerce Redesign", "client": "TechFlow Inc", "budget": 4500, "status": "ACTIVE" },
+  { "id": "2", "name": "SaaS Dashboard", "client": "CloudScale", "budget": 7200, "status": "PENDING" },
+  { "id": "3", "name": "Mobile App API", "client": "Velocity Soft", "budget": 4000, "status": "COMPLETED" }
+]
