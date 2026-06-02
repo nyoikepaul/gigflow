@@ -1,10 +1,14 @@
-# Contributing to GigFlow
+<pre>
+  Contributing to GigFlow
+=====================================================
 
 Thank you for contributing to GigFlow.
 
-## Development Setup
+Development Setup
+=====================================================
 
-```bash
+
+bash
 npm install
 npm run dev
 Contribution Rules
