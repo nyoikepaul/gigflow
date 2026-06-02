@@ -5,7 +5,8 @@ import { Download } from 'lucide-react';
 import { useGigStore } from '@/store/useGigStore';
 
 export default function PDFExport() {
-  const gigs = useGigStore((state) => state.gigs);
+  // Define 'any' as a quick fix, or replace 'any' with your actual state type
+const gigs = useGigStore((state: any) => state.gigs);
 
   const exportPDF = () => {
     const doc = new jsPDF();
@@ -13,7 +14,8 @@ export default function PDFExport() {
     doc.text('GigFlow — $10k+/month Pipeline', 20, 25);
 
     let y = 50;
-    gigs.forEach((gig, i) => {
+    // We add ': any' to explicitly tell TypeScript the type
+gigs.forEach((gig: any, i: number) => {
       doc.setFontSize(14);
       doc.text(`${i + 1}. ${gig.title || 'Gig'}`, 20, y);
       doc.setFontSize(11);

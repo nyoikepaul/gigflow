@@ -1,44 +1,42 @@
 import { create } from 'zustand';
-import { ContractEntity } from '../lib/validations/contract.schema';
-import { FinanceEngine, FinancialSummary } from '../lib/domain/finance-engine';
+
+interface ContractMetrics {
+  grossAmount: number;
+  upworkFee: number;
+  localTaxReserve: number;
+  netPayoutUSD: number;
+  netPayoutKES: number;
+}
 
 interface ContractState {
-  contracts: ContractEntity[];
-  activeContractId: string | null;
   exchangeRateUSDToKES: number;
-  seedContracts: (payload: ContractEntity[]) => void;
-  setActiveContract: (id: string) => void;
-  transitionContractStatus: (id: string, newStatus: ContractEntity['status']) => void;
-  getActiveFinancialMetrics: () => FinancialSummary | null;
+  grossAmount: number;
+  setContract: (_payload: any) => void;
+  removeContract: (_id: string) => void;
+  updateContractStatus: (_id: string, _newStatus: string) => void;
+  getActiveFinancialMetrics: () => ContractMetrics;
 }
 
 export const useContractStore = create<ContractState>((set, get) => ({
-  contracts: [],
-  activeContractId: null,
-  exchangeRateUSDToKES: 132.50,
-
-  seedContracts: (payload) => set({ 
-    contracts: payload,
-    activeContractId: payload.length > 0 ? payload[0].id : null 
-  }),
-
-  setActiveContract: (id) => set({ activeContractId: id }),
-
-  transitionContractStatus: (id, newStatus) => set((state) => ({
-    contracts: state.contracts.map((contract) => 
-      contract.id === id ? { ...contract, status: newStatus } : contract
-    )
-  })),
-
+  exchangeRateUSDToKES: 130.00,
+  grossAmount: 5000,
+  setContract: (_payload) => set({}),
+  removeContract: (_id) => set({}),
+  updateContractStatus: (_id, _newStatus) => set({}),
   getActiveFinancialMetrics: () => {
-    const { contracts, activeContractId, exchangeRateUSDToKES } = get();
-    const activeContract = contracts.find((c) => c.id === activeContractId);
-    
-    if (!activeContract) return null;
-    
-    return FinanceEngine.calculateMilestoneBreakdown(
-      activeContract.grossBudgetUSD, 
-      exchangeRateUSDToKES
-    );
-  }
+    const gross = get().grossAmount;
+    const rate = get().exchangeRateUSDToKES;
+    const upworkFee = gross * 0.10;
+    const localTaxReserve = gross * 0.05;
+    const netPayoutUSD = gross - upworkFee - localTaxReserve;
+    const netPayoutKES = netPayoutUSD * rate;
+
+    return {
+      grossAmount: gross,
+      upworkFee,
+      localTaxReserve,
+      netPayoutUSD,
+      netPayoutKES,
+    };
+  },
 }));

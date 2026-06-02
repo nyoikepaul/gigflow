@@ -1,10 +1,14 @@
-import js from '@eslint/js';
-import nextConfig from 'eslint-config-next/core-web-vitals';
+import nextPlugin from '@next/eslint-plugin-next';
 
 export default [
-  js.configs.recommended,
-  ...nextConfig,
   {
-    ignores: ['.next/**', 'out/**', 'node_modules/**'],
+    plugins: {
+      '@next/next': nextPlugin,
+    },
+    // Instead of ...nextPlugin.rules, use the 'configs' object
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+    },
   },
 ];
