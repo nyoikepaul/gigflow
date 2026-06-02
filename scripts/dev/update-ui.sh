@@ -1,48 +1,68 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# GigFlow Frontend Logic Injector
+# Auto-detects the core application entrypoint and updates the dashboard UI.
+# ==============================================================================
+
+set -euo pipefail
+
+# Find target file path
+if [ -f "app/page.tsx" ]; then
+    TARGET_FILE="app/page.tsx"
+elif [ -f "src/app/page.tsx" ]; then
+    TARGET_FILE="src/app/page.tsx"
+else
+    echo -e "\033[0;33m[!] Error: Could not locate app/page.tsx or src/app/page.tsx\033[0m"
+    exit 1
+fi
+
+echo -e "\033[0;36m[+] Target page detected: $TARGET_FILE\033[0m"
+echo -e "\033[0;32m[+] Injecting advanced metrics engine and dynamic sorting logic...\033[0m"
+
+cat << 'COMPONENT_EOF' > "$TARGET_FILE"
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useGigStore } from '@/store/useGigStore';
+import { useGigStore } from '@/store/useGigStore'; // Adjust if your store import path differs
 
-type SortField = 'title' | 'amount' | 'status';
+type SortField = 'name' | 'budget' | 'status';
 type SortOrder = 'asc' | 'desc';
 
 export default function Dashboard() {
-  const { gigs, deleteGig } = useGigStore();
+  const { projects, deleteProject } = useGigStore();
   
   // Local state for searching, filtering, and sorting
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [sortField, setSortField] = useState<SortField>('title');
+  const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-
-  // Defensive array handling to prevent Next.js server-side hydration crashes
-  const gigList = gigs ?? [];
 
   // ==========================================
   // 1. ADVANCED METRICS ENGINE (Derived State)
   // ==========================================
   const metrics = useMemo(() => {
-    const total = gigList.length;
-    const revenue = gigList.reduce((acc, g) => acc + g.amount, 0);
+    const total = projects.length;
+    const revenue = projects.reduce((acc, p) => acc + p.budget, 0);
     
     // Monthly Recurring Revenue (Active Retainers)
-    const mrr = gigList
-      .filter((g) => g.status === 'ACTIVE')
-      .reduce((acc, g) => acc + g.amount, 0);
+    const mrr = projects
+      .filter((p) => p.status === 'ACTIVE')
+      .reduce((acc, p) => acc + p.budget, 0);
       
     // Average Value per Engagement
     const avgDeal = total > 0 ? revenue / total : 0;
     
     // Percentage of successfully closed contracts
-    const completed = gigList.filter((g) => g.status === 'COMPLETED').length;
+    const completed = projects.filter((p) => p.status === 'COMPLETED').length;
     const winRate = total > 0 ? (completed / total) * 100 : 0;
 
     const activeClientsCount = new Set(
-      gigList.filter((g) => g.status === 'ACTIVE').map((g) => g.client)
+      projects.filter((p) => p.status === 'ACTIVE').map((p) => p.client)
     ).size;
 
     return { total, revenue, mrr, avgDeal, winRate, activeClientsCount };
-  }, [gigList]);
+  }, [projects]);
 
   // ==========================================
   // 2. SEARCH, FILTER, AND SORT PIPELINE
@@ -53,14 +73,14 @@ export default function Dashboard() {
     setSortField(field);
   };
 
-  const processedGigs = useMemo(() => {
-    return gigList
-      .filter((gig) => {
-        if (!gig) return false;
-        const titleMatch = gig.title?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false;
-        const clientMatch = gig.client?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false;
-        const matchesSearch = titleMatch || clientMatch;
-        const matchesStatus = statusFilter === 'All' || gig.status === statusFilter;
+  const processedProjects = useMemo(() => {
+    return projects
+      .filter((project) => {
+        const matchesSearch =
+          project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          project.client.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus =
+          statusFilter === 'All' || project.status === statusFilter;
         return matchesSearch && matchesStatus;
       })
       .sort((a, b) => {
@@ -74,7 +94,7 @@ export default function Dashboard() {
         if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
         return 0;
       });
-  }, [gigList, searchTerm, statusFilter, sortField, sortOrder]);
+  }, [projects, searchTerm, statusFilter, sortField, sortOrder]);
 
   return (
     <div className="p-8 bg-[#090d16] text-slate-100 min-h-screen font-sans">
@@ -175,17 +195,17 @@ export default function Dashboard() {
           <table className="min-w-full divide-y divide-slate-800">
             <thead>
               <tr className="text-slate-400 text-xs uppercase font-semibold tracking-wider bg-[#161f30]/30">
-                <th onClick={() => handleSort('title')} className="px-6 py-4 text-left cursor-pointer select-none hover:text-indigo-400 transition-colors">
+                <th onClick={() => handleSort('name')} className="px-6 py-4 text-left cursor-pointer select-none hover:text-indigo-400 transition-colors">
                   <div className="flex items-center gap-1.5">
                     Project Name
-                    <svg className={`w-3.5 h-3.5 transition-transform ${sortField === 'title' && sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                    <svg className={`w-3.5 h-3.5 transition-transform ${sortField === 'name' && sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left">Client</th>
-                <th onClick={() => handleSort('amount')} className="px-6 py-4 text-left cursor-pointer select-none hover:text-indigo-400 transition-colors">
+                <th onClick={() => handleSort('budget')} className="px-6 py-4 text-left cursor-pointer select-none hover:text-indigo-400 transition-colors">
                   <div className="flex items-center gap-1.5">
                     Budget
-                    <svg className={`w-3.5 h-3.5 transition-transform ${sortField === 'amount' && sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                    <svg className={`w-3.5 h-3.5 transition-transform ${sortField === 'budget' && sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
                   </div>
                 </th>
                 <th onClick={() => handleSort('status')} className="px-6 py-4 text-left cursor-pointer select-none hover:text-indigo-400 transition-colors">
@@ -198,21 +218,21 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 bg-[#0e1420]/20">
-              {processedGigs.map((gig) => (
-                <tr key={gig.id} className="hover:bg-slate-800/30 transition-colors group">
-                  <td className="px-6 py-4 font-medium text-slate-200">{gig.title}</td>
-                  <td className="px-6 py-4 text-slate-400">{gig.client}</td>
-                  <td className="px-6 py-4 text-emerald-400 font-medium">${gig.amount?.toLocaleString()}</td>
+              {processedProjects.map((project) => (
+                <tr key={project.id} className="hover:bg-slate-800/30 transition-colors group">
+                  <td className="px-6 py-4 font-medium text-slate-200">{project.name}</td>
+                  <td className="px-6 py-4 text-slate-400">{project.client}</td>
+                  <td className="px-6 py-4 text-emerald-400 font-medium">${project.budget.toLocaleString()}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
-                      gig.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                      gig.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                      project.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                      project.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
                       'bg-slate-500/10 text-slate-400 border border-slate-500/20'
                     }`}>
-                      {gig.status}
+                      {project.status}
                     </span>
                   </td>
-                  {/* ACTIONS COLUMN */}
+                  {/* HIGH-FIDELITY CONTEXT ACTION BUTTONS */}
                   <td className="px-6 py-4 text-right text-sm font-medium">
                     <div className="flex items-center space-x-3 justify-end opacity-40 group-hover:opacity-100 transition-opacity">
                       <button className="text-slate-400 hover:text-indigo-400 p-1 rounded transition-colors" title="View Details">
@@ -226,7 +246,7 @@ export default function Dashboard() {
                       </button>
                       <span className="text-slate-800">|</span>
                       <button 
-                        onClick={() => deleteGig(gig.id)} 
+                        onClick={() => deleteProject(project.id)} 
                         className="text-slate-500 hover:text-rose-500 p-1 rounded transition-colors" 
                         title="Delete Record"
                       >
@@ -236,7 +256,7 @@ export default function Dashboard() {
                   </td>
                 </tr>
               ))}
-              {processedGigs.length === 0 && (
+              {processedProjects.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-sm text-slate-500">
                     No matching project files or client contracts found.
@@ -250,3 +270,6 @@ export default function Dashboard() {
     </div>
   );
 }
+COMPONENT_EOF
+
+echo -e "\033[0;32m[+] UI Logic upgrade deployment successfully compiled inside $TARGET_FILE!\033[0m"
