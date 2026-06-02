@@ -2,7 +2,9 @@
 
 Security Policy
   
-
+===============
+  
+  
 Reporting Vulnerabilities
 
 Do NOT disclose security vulnerabilities publicly.
