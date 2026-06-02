@@ -21,5 +21,6 @@ jobs:
           file: ./Dockerfile
           push: false
           tags: gigflow-app:canary
+          no-cache: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
