@@ -1,252 +1,342 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { useGigStore } from '@/store/useGigStore';
+import React, { useState, useMemo } from "react";
+import {
+  Briefcase,
+  TrendingUp,
+  DollarSign,
+  CheckCircle2,
+  Search,
+  Filter,
+  Plus,
+  LayoutDashboard,
+  FileText,
+  CreditCard,
+  BarChart3,
+  Settings,
+  FolderKanban,
+  SlidersHorizontal,
+  Download,
+  Eye,
+  Trash2,
+  Edit3
+} from "lucide-react";
 
-type SortField = 'title' | 'amount' | 'status';
-type SortOrder = 'asc' | 'desc';
+// Types for strict type safety
+interface Project {
+  id: string;
+  name: string;
+  client: string;
+  budget: number;
+  status: "ACTIVE" | "COMPLETED" | "PENDING";
+  mrrContribution: number;
+}
 
 export default function Dashboard() {
-  const { gigs, deleteGig } = useGigStore();
-  
-  // Local state for searching, filtering, and sorting
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [sortField, setSortField] = useState<SortField>('title');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  // 1. Core State Array - Acts as the database layer for the UI
+  const [projects, setProjects] = useState<Project[]>([
+    { id: "1", name: "E-commerce Redesign", client: "TechFlow Inc", budget: 4500, status: "ACTIVE", mrrContribution: 1500 },
+    { id: "2", name: "Mobile App API", client: "Velocity Soft", budget: 4000, status: "COMPLETED", mrrContribution: 2000 },
+    { id: "3", name: "SaaS Dashboard", client: "CloudScale", budget: 7200, status: "PENDING", mrrContribution: 1000 },
+  ]);
 
-  // Defensive array handling to prevent Next.js server-side hydration crashes
-  const gigList = gigs ?? [];
+  // UI Interactive States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
+  const [currentTab, setCurrentTab] = useState<string>("dashboard");
 
-  // ==========================================
-  // 1. ADVANCED METRICS ENGINE (Derived State)
-  // ==========================================
+  // 2. Logic Pipeline: Filtering Logic
+  const filteredProjects = useMemo(() => {
+    return projects.filter((project) => {
+      const matchesSearch =
+        project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.client.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = selectedStatus === "ALL" || project.status === selectedStatus;
+      return matchesSearch && matchesStatus;
+    });
+  }, [projects, searchQuery, selectedStatus]);
+
+  // 3. Logic Pipeline: Real-time Dynamic Metrics Calculations
   const metrics = useMemo(() => {
-    const total = gigList.length;
-    const revenue = gigList.reduce((acc, g) => acc + g.amount, 0);
+    const total = filteredProjects.reduce((sum, p) => sum + p.budget, 0);
+    const mrr = filteredProjects.filter(p => p.status === "ACTIVE").reduce((sum, p) => sum + p.mrrContribution, 0);
+    const avg = filteredProjects.length > 0 ? Math.round(total / filteredProjects.length) : 0;
     
-    // Monthly Recurring Revenue (Active Retainers)
-    const mrr = gigList
-      .filter((g) => g.status === 'ACTIVE')
-      .reduce((acc, g) => acc + g.amount, 0);
-      
-    // Average Value per Engagement
-    const avgDeal = total > 0 ? revenue / total : 0;
-    
-    // Percentage of successfully closed contracts
-    const completed = gigList.filter((g) => g.status === 'COMPLETED').length;
-    const winRate = total > 0 ? (completed / total) * 100 : 0;
+    const completedCount = filteredProjects.filter(p => p.status === "COMPLETED").length;
+    const winRate = filteredProjects.length > 0 ? ((completedCount / filteredProjects.length) * 100).toFixed(1) : "0.0";
 
-    const activeClientsCount = new Set(
-      gigList.filter((g) => g.status === 'ACTIVE').map((g) => g.client)
-    ).size;
+    return { total, mrr, avg, winRate };
+  }, [filteredProjects]);
 
-    return { total, revenue, mrr, avgDeal, winRate, activeClientsCount };
-  }, [gigList]);
-
-  // ==========================================
-  // 2. SEARCH, FILTER, AND SORT PIPELINE
-  // ==========================================
-  const handleSort = (field: SortField) => {
-    const isAsc = sortField === field && sortOrder === 'asc';
-    setSortOrder(isAsc ? 'desc' : 'asc');
-    setSortField(field);
+  // Quick state modification logic handlers
+  const deleteProject = (id: string) => {
+    setProjects(projects.filter((p) => p.id !== id));
   };
 
-  const processedGigs = useMemo(() => {
-    return gigList
-      .filter((gig) => {
-        if (!gig) return false;
-        const titleMatch = gig.title?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false;
-        const clientMatch = gig.client?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false;
-        const matchesSearch = titleMatch || clientMatch;
-        const matchesStatus = statusFilter === 'All' || gig.status === statusFilter;
-        return matchesSearch && matchesStatus;
-      })
-      .sort((a, b) => {
-        let aVal = a[sortField];
-        let bVal = b[sortField];
-
-        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
-        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
-
-        if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
-        return 0;
-      });
-  }, [gigList, searchTerm, statusFilter, sortField, sortOrder]);
-
   return (
-    <div className="p-8 bg-[#090d16] text-slate-100 min-h-screen font-sans">
-      {/* HEADER ROW */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <div className="flex h-screen w-full bg-[#09090b] text-zinc-100 font-sans overflow-hidden">
+      
+      {/* ================= LEFT SIDEBAR LOGIC DASHBOARD ================= */}
+      <aside className="w-64 bg-[#0c0c0e] border-r border-zinc-800 flex flex-col justify-between hidden md:flex shrink-0">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-extrabold tracking-tight">GigFlow</h1>
-            <span className="px-2.5 py-0.5 text-xs font-semibold rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              v1.0 Professional
+          {/* Brand Header */}
+          <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
+                GigFlow
+              </span>
+              <span className="text-[10px] text-zinc-500 font-medium uppercase mt-0.5 tracking-wider">
+                v1.0 Professional
+              </span>
+            </div>
+            <span className="px-2 py-0.5 text-[10px] font-semibold text-purple-400 bg-purple-950/40 border border-purple-800/50 rounded-md">
+              PRO
             </span>
           </div>
-          <p className="text-sm text-slate-400 mt-1">
-            Manage active contracts, track revenue pipeline, and generate statements.
-          </p>
-        </div>
-        <button className="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors shadow-lg shadow-indigo-600/10 flex items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Export PDF
-        </button>
-      </div>
 
-      {/* 4-COLUMN HIGH-FIDELITY METRICS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Total Revenue */}
-        <div className="bg-[#111827] border border-slate-800/80 p-6 rounded-xl flex justify-between items-center shadow-md">
-          <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Revenue</p>
-            <h3 className="text-3xl font-bold text-emerald-400 mt-1">${metrics.revenue.toLocaleString()}</h3>
+          {/* Quick Core Action */}
+          <div className="px-4 py-4">
+            <button className="w-full bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium text-xs py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              New Contract
+            </button>
           </div>
-          <div className="bg-emerald-950/40 p-3 rounded-lg border border-emerald-500/10 text-emerald-400">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          </div>
-        </div>
 
-        {/* Monthly MRR */}
-        <div className="bg-[#111827] border border-slate-800/80 p-6 rounded-xl flex justify-between items-center shadow-md">
-          <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Monthly MRR</p>
-            <h3 className="text-3xl font-bold text-indigo-400 mt-1">${metrics.mrr.toLocaleString()}</h3>
-          </div>
-          <div className="bg-indigo-950/40 p-3 rounded-lg border border-indigo-500/10 text-indigo-400">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-          </div>
-        </div>
+          {/* Core System Navigation */}
+          <nav className="px-3 space-y-1">
+            <p className="px-3 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Platform Engine</p>
+            {[
+              { id: "dashboard", label: "Overview", icon: LayoutDashboard },
+              { id: "contracts", label: "Contracts Desk", icon: FolderKanban },
+              { id: "invoices", label: "Invoicing & Escrow", icon: CreditCard },
+              { id: "analytics", label: "Performance Analytics", icon: BarChart3 },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = currentTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setCurrentTab(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-zinc-800/60 text-white border-l-2 border-purple-500 pl-2.5"
+                      : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? "text-purple-400" : "text-zinc-500"}`} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
 
-        {/* Avg Deal Size */}
-        <div className="bg-[#111827] border border-slate-800/80 p-6 rounded-xl flex justify-between items-center shadow-md">
-          <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avg Deal Size</p>
-            <h3 className="text-3xl font-bold text-purple-400 mt-1">${Math.round(metrics.avgDeal).toLocaleString()}</h3>
-          </div>
-          <div className="bg-purple-950/40 p-3 rounded-lg border border-purple-500/10 text-purple-400">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-          </div>
-        </div>
-
-        {/* Win Rate */}
-        <div className="bg-[#111827] border border-slate-800/80 p-6 rounded-xl flex justify-between items-center shadow-md">
-          <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Win Rate</p>
-            <h3 className="text-3xl font-bold text-amber-400 mt-1">{metrics.winRate.toFixed(1)}%</h3>
-          </div>
-          <div className="bg-amber-950/40 p-3 rounded-lg border border-amber-500/10 text-amber-400">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          </div>
-        </div>
-      </div>
-
-      {/* FILTER CONTROLS BAR */}
-      <div className="bg-[#111827] border border-slate-800 p-4 rounded-xl mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="relative w-full sm:w-72">
-          <input
-            type="text"
-            placeholder="Search projects or clients..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#1f2937] border border-slate-700/60 rounded-lg px-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition-colors"
-          />
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="w-full sm:w-44 bg-[#1f2937] border border-slate-700/60 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
-        >
-          <option value="All">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="PENDING">Pending</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-      </div>
-
-      {/* INTERACTIVE DATA TABLE */}
-      <div className="bg-[#111827] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-800">
-            <thead>
-              <tr className="text-slate-400 text-xs uppercase font-semibold tracking-wider bg-[#161f30]/30">
-                <th onClick={() => handleSort('title')} className="px-6 py-4 text-left cursor-pointer select-none hover:text-indigo-400 transition-colors">
-                  <div className="flex items-center gap-1.5">
-                    Project Name
-                    <svg className={`w-3.5 h-3.5 transition-transform ${sortField === 'title' && sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-left">Client</th>
-                <th onClick={() => handleSort('amount')} className="px-6 py-4 text-left cursor-pointer select-none hover:text-indigo-400 transition-colors">
-                  <div className="flex items-center gap-1.5">
-                    Budget
-                    <svg className={`w-3.5 h-3.5 transition-transform ${sortField === 'amount' && sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
-                  </div>
-                </th>
-                <th onClick={() => handleSort('status')} className="px-6 py-4 text-left cursor-pointer select-none hover:text-indigo-400 transition-colors">
-                  <div className="flex items-center gap-1.5">
-                    Status
-                    <svg className={`w-3.5 h-3.5 transition-transform ${sortField === 'status' && sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60 bg-[#0e1420]/20">
-              {processedGigs.map((gig) => (
-                <tr key={gig.id} className="hover:bg-slate-800/30 transition-colors group">
-                  <td className="px-6 py-4 font-medium text-slate-200">{gig.title}</td>
-                  <td className="px-6 py-4 text-slate-400">{gig.client}</td>
-                  <td className="px-6 py-4 text-emerald-400 font-medium">${gig.amount?.toLocaleString()}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
-                      gig.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                      gig.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                      'bg-slate-500/10 text-slate-400 border border-slate-500/20'
-                    }`}>
-                      {gig.status}
+          {/* Interactive State Filter Controls */}
+          <div className="px-3 mt-8">
+            <div className="flex items-center gap-2 px-3 mb-2">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-500" />
+              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">State Filters</p>
+            </div>
+            <div className="space-y-1">
+              {[
+                { id: "ALL", label: "All Pipelines", count: projects.length },
+                { id: "ACTIVE", label: "Active Engine", count: projects.filter(p => p.status === "ACTIVE").length },
+                { id: "PENDING", label: "Pending Review", count: projects.filter(p => p.status === "PENDING").length },
+                { id: "COMPLETED", label: "Settled Nodes", count: projects.filter(p => p.status === "COMPLETED").length },
+              ].map((filter) => {
+                const isActive = selectedStatus === filter.id;
+                return (
+                  <button
+                    key={filter.id}
+                    onClick={() => setSelectedStatus(filter.id)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                      isActive ? "bg-purple-950/30 text-purple-300 border border-purple-900/50" : "text-zinc-400 hover:bg-zinc-900/50"
+                    }`}
+                  >
+                    <span>{filter.label}</span>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${isActive ? "bg-purple-900/60 text-purple-200" : "bg-zinc-900 text-zinc-500"}`}>
+                      {filter.count}
                     </span>
-                  </td>
-                  {/* ACTIONS COLUMN */}
-                  <td className="px-6 py-4 text-right text-sm font-medium">
-                    <div className="flex items-center space-x-3 justify-end opacity-40 group-hover:opacity-100 transition-opacity">
-                      <button className="text-slate-400 hover:text-indigo-400 p-1 rounded transition-colors" title="View Details">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                      </button>
-                      <button className="text-slate-400 hover:text-emerald-400 p-1 rounded transition-colors" title="Generate Invoice">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      </button>
-                      <button className="text-slate-400 hover:text-amber-400 p-1 rounded transition-colors" title="Edit Record">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                      </button>
-                      <span className="text-slate-800">|</span>
-                      <button 
-                        onClick={() => deleteGig(gig.id)} 
-                        className="text-slate-500 hover:text-rose-500 p-1 rounded transition-colors" 
-                        title="Delete Record"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {processedGigs.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-sm text-slate-500">
-                    No matching project files or client contracts found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
+
+        {/* Infrastructure Footprint Status Footer */}
+        <div className="p-4 border-t border-zinc-800 bg-[#08080a]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-medium text-zinc-500">M-Pesa Gateway Node</span>
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+          </div>
+          <div className="w-full bg-zinc-900 rounded-full h-1">
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-1 rounded-full w-full" />
+          </div>
+          <button className="w-full mt-3 flex items-center gap-2 px-2.5 py-1.5 text-zinc-500 hover:text-zinc-300 rounded text-xs transition-colors cursor-pointer">
+            <Settings className="w-3.5 h-3.5" />
+            <span>Infrastructure Core</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ================= MAIN MONITORING VIEW ================= */}
+      <main className="flex-1 overflow-y-auto bg-[#09090b] p-6 lg:p-8">
+        
+        {/* Top Operational Matrix Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Operational Hub</h1>
+            <p className="text-xs text-zinc-400 mt-1">
+              Manage active contracts, track revenue pipeline, and generate statements.
+            </p>
+          </div>
+          <button className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-md transition-all self-start sm:self-center cursor-pointer">
+            <Download className="w-4 h-4" />
+            Export PDF
+          </button>
+        </div>
+
+        {/* Dynamic Metric Grid (Calculated on the Fly) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* Card 1: Revenue */}
+          <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-xl flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Revenue</p>
+              <p className="text-2xl font-extrabold tracking-tight text-emerald-400 mt-1">${metrics.total.toLocaleString()}</p>
+            </div>
+            <div className="p-3 bg-emerald-950/30 border border-emerald-900/40 rounded-xl text-emerald-400">
+              <DollarSign className="w-5 h-5" />
+            </div>
+          </div>
+
+          {/* Card 2: MRR */}
+          <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-xl flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Monthly MRR</p>
+              <p className="text-2xl font-extrabold tracking-tight text-blue-400 mt-1">${metrics.mrr.toLocaleString()}</p>
+            </div>
+            <div className="p-3 bg-blue-950/30 border border-blue-900/40 rounded-xl text-blue-400">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+          </div>
+
+          {/* Card 3: Average Deal Size */}
+          <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-xl flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Avg Deal Size</p>
+              <p className="text-2xl font-extrabold tracking-tight text-purple-400 mt-1">${metrics.avg.toLocaleString()}</p>
+            </div>
+            <div className="p-3 bg-purple-950/30 border border-purple-900/40 rounded-xl text-purple-400">
+              <Briefcase className="w-5 h-5" />
+            </div>
+          </div>
+
+          {/* Card 4: Win Rate */}
+          <div className="bg-[#0c0c0e] border border-zinc-800 p-5 rounded-xl flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Win Rate</p>
+              <p className="text-2xl font-extrabold tracking-tight text-amber-500 mt-1">{metrics.winRate}%</p>
+            </div>
+            <div className="p-3 bg-amber-950/30 border border-amber-900/40 rounded-xl text-amber-500">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+
+        {/* Data Filtering Bar */}
+        <div className="bg-[#0c0c0e] border border-zinc-800 rounded-xl p-4 mb-4 flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative w-full sm:flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+            <input
+              type="text"
+              placeholder="Search projects or clients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#141417] border border-zinc-800 rounded-lg pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
+            />
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <div className="flex items-center gap-1.5 bg-[#141417] border border-zinc-800 px-3 py-2 rounded-lg text-xs text-zinc-400">
+              <Filter className="w-3.5 h-3.5" />
+              <span>Status:</span>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="bg-transparent text-zinc-200 focus:outline-none ml-1 font-medium cursor-pointer"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="ACTIVE">Active</option>
+                <option value="PENDING">Pending</option>
+                <option value="COMPLETED">Completed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* The Relational Reactive Data Table */}
+        <div className="bg-[#0c0c0e] border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-800 text-[10px] font-bold uppercase tracking-wider text-zinc-400 bg-[#08080a]">
+                  <th className="py-4 px-6">Project Name</th>
+                  <th className="py-4 px-6">Client</th>
+                  <th className="py-4 px-6">Budget</th>
+                  <th className="py-4 px-6">Status</th>
+                  <th className="py-4 px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800/60 text-xs">
+                {filteredProjects.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-zinc-500 font-medium">
+                      No computational records match the query parameters.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredProjects.map((project) => (
+                    <tr key={project.id} className="hover:bg-zinc-900/30 transition-colors group">
+                      <td className="py-4 px-6 font-semibold text-zinc-100">{project.name}</td>
+                      <td className="py-4 px-6 text-zinc-400">{project.client}</td>
+                      <td className="py-4 px-6 font-mono font-medium text-emerald-400">${project.budget.toLocaleString()}</td>
+                      <td className="py-4 px-6">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                            project.status === "ACTIVE"
+                              ? "bg-emerald-950/40 text-emerald-400 border-emerald-800/40"
+                              : project.status === "COMPLETED"
+                              ? "bg-zinc-800 text-zinc-300 border-zinc-700"
+                              : "bg-amber-950/40 text-amber-500 border-amber-900/40"
+                          }`}
+                        >
+                          {project.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <div className="flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                          <button className="p-1.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer">
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          <button className="p-1.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 cursor-pointer">
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => deleteProject(project.id)}
+                            className="p-1.5 hover:bg-red-950/40 rounded text-zinc-500 hover:text-red-400 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
     </div>
   );
 }
