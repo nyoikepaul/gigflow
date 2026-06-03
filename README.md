@@ -93,7 +93,8 @@ make test-all
 This gate sequentially audits static application security layers, evaluates telemetry streams for critical failures (such as M-Pesa STK push timeout errors), and verifies containerized environment health parameters seamlessly.
 
  
- ###  
- <img width="1366" height="589" alt="image" src="https://github.com/user-attachments/assets/b5c421fb-5971-4ccb-9b1d-2b3f31278201" />
+
+ <img width="1366" height="662" alt="image" src="https://github.com/user-attachments/assets/2c56fc49-b4a9-43d1-9f44-5413f7b5c5f0" />
+
 
  
